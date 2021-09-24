@@ -85,22 +85,13 @@ export class MicroBit {
   async connect() {
     this.#services = await getServices(this.#device);
     this.#isConncted = true;
-    this.#services?.buttonService?.addEventListener(
-      "buttonastatechanged",
-      this.#onButtonA
-    );
-    this.#services?.buttonService?.addEventListener(
-      "buttonbstatechanged",
-      this.#onButtonB
-    );
+    this.addButtonAListener(this.#onButtonA);
+    this.addButtonBListener(this.#onButtonB);
     // this.#services.ledService
     // this.#services.temperatureService
     // this.#services.accelerometerService
     // this.#services.magnetometerService
-    this.#services?.uartService?.addEventListener(
-      "receiveText",
-      this.#onReceiveText
-    );
+    this.addReceiveTextListener(this.#onReceiveText);
     // this.#services.eventService
     // this.#services.ioPinService
     this.addDisconnectedListener(this.#onDisconnected);
@@ -123,6 +114,10 @@ export class MicroBit {
       await this.#services?.deviceInformationService?.readDeviceInformation();
   }
 
+  async sendText(text) {
+    await this.#services?.uartService?.sendText(text);
+  }
+
   async disconnect() {
     if (this.#device?.gatt?.connected) {
       await this.#device?.gatt?.disconnect();
@@ -136,10 +131,49 @@ export class MicroBit {
 
   async destroy() {
     await this.disconnect();
-    MicroBit.remove(this);
+    this.removeButtonAListener(this.#onButtonA);
+    this.removeButtonBListener(this.#onButtonB);
+    this.removeReceiveTextListener(this.#onReceiveText);
     this.removeDisconnectedListener(this.#onDisconnected);
+    MicroBit.remove(this);
     this.#services = null;
     this.#device = null;
+  }
+
+  addButtonAListener(callback) {
+    this.#services?.buttonService?.addEventListener(
+      "buttonastatechanged",
+      callback
+    );
+  }
+
+  removeButtonAListener(callback) {
+    this.#services?.buttonService?.removeEventListener(
+      "buttonastatechanged",
+      callback
+    );
+  }
+
+  addButtonBListener(callback) {
+    this.#services?.buttonService?.addEventListener(
+      "buttonbstatechanged",
+      callback
+    );
+  }
+
+  removeButtonBListener(callback) {
+    this.#services?.buttonService?.removeEventListener(
+      "buttonbstatechanged",
+      callback
+    );
+  }
+
+  addReceiveTextListener(callback) {
+    this.#services?.uartService?.addEventListener("receiveText", callback);
+  }
+
+  removeReceiveTextListener(callback) {
+    this.#services?.uartService?.removeEventListener("receiveText", callback);
   }
 
   addDisconnectedListener(callback) {
