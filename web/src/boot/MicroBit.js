@@ -37,24 +37,45 @@ export class MicroBit {
     return this.#devices.get(id);
   }
 
+  #dataChangeListeners = [];
+  addDataChangeListener(callback) {
+    if (!this.#dataChangeListeners.includes(callback)) {
+      this.#dataChangeListeners.push(callback);
+    }
+  }
+  removeDataChangeListener(callback) {
+    const index = this.#dataChangeListeners.indexOf(callback);
+    if (index > -1) {
+      this.#dataChangeListeners.splice(index, 1);
+    }
+  }
+  async #invokeDataChangeListeners() {
+    return Promise.allSettled(
+      this.#dataChangeListeners
+        .filter((callback) => callback instanceof Function)
+        .map((callback) => callback(this.#data))
+    );
+  }
+
   #device = null;
   #services = null;
   #data = {
-    deviceInformation: {
-      modelNumber: null,
-      serialNumber: null,
-      firmwareRevision: null,
-      hardwareRevision: null,
-      manufacturer: null,
-    },
     button: {
       a: null,
       b: null,
     },
     led: null,
     temperature: null,
-    accelerometer: null,
-    magnetometer: null,
+    accelerometer: {
+      x: null,
+      y: null,
+      y: null,
+    },
+    magnetometer: {
+      x: null,
+      y: null,
+      y: null,
+    },
     uart: null,
     event: null,
     ioPin: null,
@@ -99,23 +120,41 @@ export class MicroBit {
 
   #onButtonA = (event) => {
     this.#data.button.a = event.detail;
+    this.#invokeDataChangeListeners();
   };
 
   #onButtonB = (event) => {
     this.#data.button.b = event.detail;
+    this.#invokeDataChangeListeners();
   };
 
   #onReceiveText = (event) => {
     this.#data.uart = event.detail;
+    this.#invokeDataChangeListeners();
   };
 
   async deviceInformation() {
-    this.#data.deviceInformation =
-      await this.#services?.deviceInformationService?.readDeviceInformation();
+    return this.#services?.deviceInformationService?.readDeviceInformation();
+  }
+
+  async readButtonAState() {
+    return this.#services?.buttonService?.readButtonAState();
+  }
+
+  async readButtonBState() {
+    return this.#services?.buttonService?.readButtonBState();
   }
 
   async sendText(text) {
     await this.#services?.uartService?.sendText(text);
+  }
+
+  async setTemperaturePeriod(frequency) {
+    await this.#services?.temperatureService?.setTemperaturePeriod(frequency);
+  }
+
+  async getTemperaturePeriod(frequency) {
+    return this.#services?.temperatureService?.getTemperaturePeriod();
   }
 
   async disconnect() {
