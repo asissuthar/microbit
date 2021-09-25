@@ -1,9 +1,14 @@
 <template>
   <q-page>
-    <q-btn no-caps @click="microBitScan" label="Scan" />
-    <div v-for="device in getDevices" :key="device.id">
-      <m-connect :device="device" />
-      <m-uart-service :device="device" />
+    <q-btn
+      class="full-width"
+      color="primary"
+      no-caps
+      @click="scanDevices"
+      label="Scan"
+    />
+    <div v-for="(device, id) in getDevices" :key="id">
+      <micro-bit :device="device" />
     </div>
   </q-page>
 </template>
@@ -11,18 +16,17 @@
 <script>
 import { defineComponent } from "vue";
 import { mapGetters, mapActions } from "vuex";
-import MUartService from "components/MUartService.vue";
-import MConnect from "components/MConnect.vue";
+import MicroBit from "components/MicroBit.vue";
 
 export default defineComponent({
-  components: { MUartService, MConnect },
+  components: { MicroBit },
   name: "IndexPage",
   computed: {
     ...mapGetters("MicroBit", ["getDevices"]),
   },
   methods: {
     ...mapActions("MicroBit", ["scan"]),
-    async microBitScan() {
+    async scanDevices() {
       try {
         await this.scan();
       } catch (error) {

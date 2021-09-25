@@ -1,4 +1,5 @@
 import { MicroBit } from "boot/MicroBit";
+import { flatten, unflatten } from "flat";
 
 const state = () => ({
   scanning: false,
@@ -10,7 +11,14 @@ const getters = {
     return state.scanning;
   },
   getDevices(state) {
-    return state.devices;
+    const devices = {};
+    for (const id in state.devices) {
+      devices[id] = unflatten(state.devices[id]);
+    }
+    return devices;
+  },
+  getDevice(state, getters) {
+    return (id) => getters.getDevices[id];
   },
 };
 
@@ -19,7 +27,14 @@ const mutations = {
     state.scanning = value;
   },
   setDevices(state, value) {
-    state.devices = value;
+    const devices = {};
+    for (const id in value) {
+      devices[id] = flatten(value[id]);
+    }
+    state.devices = devices;
+  },
+  setDevice(state, { id, path, value }) {
+    state.devices[id][path] = value;
   },
 };
 
