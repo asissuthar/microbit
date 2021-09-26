@@ -29,16 +29,16 @@ export default defineComponent({
     getMicroBit() {
       return MicroBit.get(this.deviceId);
     },
-    async readButtonAState() {
+    async readButtonA() {
       try {
-        await this.getMicroBit()?.readButtonAState();
+        await this.getMicroBit()?.readButtonA();
       } catch (error) {
         console.log(error);
       }
     },
   },
   async mounted() {
-    await this.readButtonAState();
+    await this.readButtonA();
   },
 });
 </script>

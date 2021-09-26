@@ -5,7 +5,7 @@
         <q-checkbox
           dense
           :model-value="deviceLedData[x - 1][y - 1]"
-          @update:model-value="writeMatrixState(x - 1, y - 1, $event)"
+          @update:model-value="writeMatrix(x - 1, y - 1, $event)"
         />
       </div>
     </div>
@@ -52,24 +52,24 @@ export default defineComponent({
     getMicroBit() {
       return MicroBit.get(this.deviceId);
     },
-    async writeMatrixState(x, y, value) {
+    async writeMatrix(x, y, value) {
       try {
         this.matrix[x][y] = value;
-        await this.getMicroBit()?.writeMatrixState(this.matrix);
+        await this.getMicroBit()?.writeMatrix(this.matrix);
       } catch (error) {
         console.log(error);
       }
     },
-    async readMatrixState() {
+    async readMatrix() {
       try {
-        await this.getMicroBit()?.readMatrixState();
+        await this.getMicroBit()?.readMatrix();
       } catch (error) {
         console.log(error);
       }
     },
   },
   async mounted() {
-    await this.readMatrixState();
+    await this.readMatrix();
   },
 });
 </script>

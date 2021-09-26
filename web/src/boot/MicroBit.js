@@ -180,6 +180,8 @@ export class MicroBit {
     },
     event: {
       available: false,
+      loading: false,
+      updating: false,
       data: {
         type: null,
         value: null,
@@ -187,7 +189,23 @@ export class MicroBit {
     },
     ioPin: {
       available: false,
+      loading: false,
+      updating: false,
       data: null,
+      adConfiguration: {
+        loading: false,
+        updating: false,
+        data: null,
+      },
+      ioConfiguration: {
+        loading: false,
+        updating: false,
+        data: null,
+      },
+      pwmControl: {
+        updating: false,
+        data: null,
+      },
     },
   };
 
@@ -277,6 +295,7 @@ export class MicroBit {
       }
       if (this.#services.ioPinService) {
         this.#data.ioPin.available = true;
+        this.addIoPinChangedListener(this.#onIoPin);
       }
       this.addDisconnectedListener(this.#onDisconnected);
     } finally {
@@ -303,7 +322,7 @@ export class MicroBit {
     this.#data.deviceInformation.data.manufacturer = data?.manufacturer;
   }
 
-  async readButtonAState() {
+  async readButtonA() {
     try {
       this.#data.button.a.loading = true;
       this.#data.button.a.data =
@@ -313,7 +332,7 @@ export class MicroBit {
     }
   }
 
-  async readButtonBState() {
+  async readButtonB() {
     try {
       this.#data.button.b.loading = true;
       this.#data.button.b.data =
@@ -353,7 +372,7 @@ export class MicroBit {
     }
   }
 
-  async readMatrixState() {
+  async readMatrix() {
     try {
       this.#data.led.loading = true;
       this.#updateLedData(await this.#services?.ledService?.readMatrixState());
@@ -362,7 +381,7 @@ export class MicroBit {
     }
   }
 
-  async writeMatrixState(state) {
+  async writeMatrix(state) {
     try {
       this.#data.led.updating = true;
       await this.#services?.ledService?.writeMatrixState(state);
@@ -432,7 +451,7 @@ export class MicroBit {
     }
   }
 
-  async readAccelerometerData() {
+  async readAccelerometer() {
     try {
       this.#data.accelerometer.loading = true;
       this.#updateAccelerometerData(
@@ -481,7 +500,7 @@ export class MicroBit {
     }
   }
 
-  async readMagnetometerData() {
+  async readMagnetometer() {
     try {
       this.#data.magnetometer.loading = true;
       this.#updateMagnetometerData(
@@ -518,6 +537,122 @@ export class MicroBit {
     }
   }
 
+  async getMicrobitRequirements() {
+    try {
+      this.#data.event.loading = true;
+      this.#updateEventData(
+        await this.#services?.eventService?.getMicrobitRequirements()
+      );
+    } finally {
+      this.#data.event.loading = false;
+    }
+  }
+
+  async setClientRequirements(type, value) {
+    try {
+      this.#data.event.updating = true;
+      await this.#services?.eventService?.setClientRequirements(type, value);
+      this.#updateEventData({ type, value });
+    } finally {
+      this.#data.event.updating = false;
+    }
+  }
+
+  async readEvent() {
+    try {
+      this.#data.event.loading = true;
+      this.#updateEventData(
+        await this.#services?.eventService?.readMicrobitEvent()
+      );
+    } finally {
+      this.#data.event.loading = false;
+    }
+  }
+
+  async writeClientEvent(type, value) {
+    try {
+      this.#data.event.updating = true;
+      await this.#services?.eventService?.writeClientEvent(type, value);
+      this.#updateEventData({ type, value });
+    } finally {
+      this.#data.event.updating = false;
+    }
+  }
+
+  #updateEventData({ type, value }) {
+    this.#data.event.data.type = type;
+    this.#data.event.data.value = value;
+  }
+
+  async readPin() {
+    try {
+      this.#data.ioPin.loading = true;
+      this.#data.ioPin.data = await this.#services?.ioPinService?.readPinData();
+    } finally {
+      this.#data.ioPin.loading = false;
+    }
+  }
+
+  async writePin(data) {
+    try {
+      this.#data.ioPin.updating = true;
+      await this.#services?.ioPinService?.writePinData(data);
+      this.#data.ioPin.data = data;
+    } finally {
+      this.#data.ioPin.updating = false;
+    }
+  }
+
+  async getAdConfiguration() {
+    try {
+      this.#data.ioPin.adConfiguration.loading = true;
+      this.#data.ioPin.adConfiguration.data =
+        await this.#services?.ioPinService?.getAdConfiguration();
+    } finally {
+      this.#data.ioPin.adConfiguration.loading = false;
+    }
+  }
+
+  async setAdConfiguration(data) {
+    try {
+      this.#data.ioPin.adConfiguration.updating = true;
+      await this.#services?.ioPinService?.setAdConfiguration(data);
+      this.#data.ioPin.adConfiguration.data = data;
+    } finally {
+      this.#data.ioPin.adConfiguration.updating = false;
+    }
+  }
+
+  async getIoConfiguration() {
+    try {
+      this.#data.ioPin.ioConfiguration.loading = true;
+      this.#data.ioPin.ioConfiguration.data =
+        await this.#services?.ioPinService?.getIoConfiguration();
+    } finally {
+      this.#data.ioPin.ioConfiguration.loading = false;
+    }
+  }
+
+  async setIoConfiguration(data) {
+    try {
+      this.#data.ioPin.ioConfiguration.updating = true;
+      await this.#services?.ioPinService?.setIoConfiguration(data);
+      this.#data.ioPin.ioConfiguration.data = data;
+    } finally {
+      this.#data.ioPin.ioConfiguration.updating = false;
+    }
+  }
+
+  async setPwmControl(data) {
+    try {
+      this.#data.ioPin.pwmControl.updating = true;
+      await this.#services?.ioPinService?.setPwmControl(data);
+      this.#data.ioPin.pwmControl.data = data;
+    } finally {
+      this.#data.ioPin.pwmControl.updating = false;
+    }
+  }
+
   async disconnect() {
     try {
       this.#data.connection.disconnecting = true;
@@ -549,6 +684,7 @@ export class MicroBit {
     this.removeMagnetometerChangedListener(this.#onMagnetometer);
     this.removeReceiveTextListener(this.#onReceiveText);
     this.removeEventListener(this.#onEvent);
+    this.removeIoPinChangedListener(this.#onIoPin);
     this.removeDisconnectedListener(this.#onDisconnected);
     MicroBit.#remove(this);
     this.#services = null;
@@ -672,6 +808,17 @@ export class MicroBit {
     );
   }
 
+  addIoPinChangedListener(callback) {
+    this.#services?.ioPinService?.addEventListener("pindatachanged", callback);
+  }
+
+  removeIoPinChangedListener(callback) {
+    this.#services?.ioPinService?.removeEventListener(
+      "pindatachanged",
+      callback
+    );
+  }
+
   addDisconnectedListener(callback) {
     this.#device?.addEventListener("gattserverdisconnected", callback);
   }
@@ -713,7 +860,11 @@ export class MicroBit {
   };
 
   #onEvent = (event) => {
-    this.#data.event.data = event.detail;
+    this.#updateEventData(event.detail);
+  };
+
+  #onIoPin = (event) => {
+    this.#data.ioPin.data = event.detail;
   };
 
   toJSON() {

@@ -4,27 +4,53 @@
       <div class="text-h6">{{ deviceName }}</div>
     </q-card-section>
     <q-card-section v-if="isDeviceConnected">
-      <div v-if="isButtonAvailable" class="row text-center">
-        <div class="col">
-          <micro-bit-button-a :device="device" />
-        </div>
-        <div class="col">
-          <micro-bit-button-b :device="device" />
-        </div>
+      <div class="row text-center q-gutter-x-md">
+        <q-card v-if="isButtonAvailable" class="col">
+          <q-card-section>
+            <micro-bit-button-a :device="device" />
+          </q-card-section>
+        </q-card>
+        <q-card v-if="isButtonAvailable" class="col">
+          <q-card-section>
+            <micro-bit-button-b :device="device" />
+          </q-card-section>
+        </q-card>
+        <q-card v-if="isTemperatureAvailable" class="col">
+          <q-card-section>
+            <micro-bit-temperature :device="device" />
+          </q-card-section>
+        </q-card>
       </div>
-      <micro-bit-temperature v-if="isTemperatureAvailable" :device="device" />
-      <div v-if="isLedAvailable">
-        <micro-bit-led :device="device" />
-        <q-input
-          v-model="text"
-          type="text"
-          hide-bottom-space
-          hide-hint
-          label="Text"
-          outlined
-          @keypress.enter="writeText"
-        />
-      </div>
+
+      <q-card v-if="isLedAvailable" class="q-mt-md q-gutter-y-md">
+        <q-card-section>
+          <micro-bit-led :device="device" />
+          <q-input
+            v-model="text"
+            type="text"
+            hide-bottom-space
+            hide-hint
+            label="Text"
+            class="q-mt-md"
+            outlined
+            @keypress.enter="writeText"
+          />
+        </q-card-section>
+      </q-card>
+      <q-card v-if="isUartAvailable" class="q-mt-md q-gutter-y-md">
+        <q-card-section>
+          <q-input
+            v-model="text"
+            type="text"
+            hide-bottom-space
+            hide-hint
+            label="Text"
+            outlined
+            @keypress.enter="sendText"
+          />
+          <div class="text-h6 q-mt-md">{{ uartData }}</div>
+        </q-card-section>
+      </q-card>
     </q-card-section>
     <q-card-actions>
       <q-btn
@@ -86,10 +112,12 @@ export default defineComponent({
     isTemperatureAvailable() {
       return this.device?.temperature.available;
     },
+    isUartAvailable() {
+      return this.device?.uart.available;
+    },
     uartData() {
       return this.device?.uart.data;
     },
-
     connectButtonLabel() {
       return this.isDeviceConnecting
         ? "Connecting"
@@ -122,6 +150,15 @@ export default defineComponent({
         console.log(error);
       }
     },
+    async sendText() {
+      try {
+        await this.getMicroBit()?.sendText(this.text + "\n");
+        this.text = "";
+      } catch (error) {
+        console.log(error);
+      }
+    },
   },
+  async mounted() {},
 });
 </script>
